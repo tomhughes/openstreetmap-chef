@@ -1,0 +1,60 @@
+# DO NOT EDIT - This file is being maintained by Chef
+
+<VirtualHost *:80>
+  ServerName <%= @name %>
+<% @aliases.each do |alias_name| -%>
+  ServerAlias <%= alias_name %>
+<% end -%>
+  ServerAdmin postmaster@openstreetmap.org
+
+  CustomLog /var/log/apache2/<%= @name %>-access.log combined
+  ErrorLog /var/log/apache2/<%= @name %>-error.log
+
+  RedirectPermanent /.well-known/acme-challenge/ http://acme.openstreetmap.org/.well-known/acme-challenge/
+  RedirectPermanent / https://<%= @name %>/
+</VirtualHost>
+<% unless @aliases.empty? -%>
+
+<VirtualHost *:443>
+  ServerName <%= @aliases.first %>
+<% @aliases.drop(1).each do |alias_name| -%>
+  ServerAlias <%= alias_name %>
+<% end -%>
+  ServerAdmin postmaster@openstreetmap.org
+
+  SSLEngine on
+  SSLCertificateFile /etc/ssl/certs/<%= @name %>.pem
+  SSLCertificateKeyFile /etc/ssl/private/<%= @name %>.key
+
+  CustomLog /var/log/apache2/<%= @name %>-access.log combined
+  ErrorLog /var/log/apache2/<%= @name %>-error.log
+
+  RedirectPermanent / https://<%= @name %>/
+</VirtualHost>
+<% end -%>
+
+<VirtualHost *:443>
+  ServerName <%= @name %>
+  ServerAdmin postmaster@openstreetmap.org
+  ServerSignature On
+
+  SSLEngine on
+  SSLCertificateFile /etc/ssl/certs/<%= @name %>.pem
+  SSLCertificateKeyFile /etc/ssl/private/<%= @name %>.key
+
+  CustomLog /var/log/apache2/<%= @name %>-access.log combined
+  ErrorLog /var/log/apache2/<%= @name %>-error.log
+  LogLevel warn
+
+  DocumentRoot <%= @directory %>
+  Alias /mailman3/static /var/lib/mailman3/web/static
+  Alias /mailman3/static/favicon.ico /var/lib/mailman3/web/static/postorius/img/favicon.ico
+
+  ProxyPass /mailman3/static !
+  ProxyPass / unix:/run/mailman3-web/uwsgi.sock|uwsgi://127.0.0.1/
+</VirtualHost>
+
+<Directory /var/lib/mailman3/web/static>
+   AllowOverride None
+   Require all granted
+</Directory>
