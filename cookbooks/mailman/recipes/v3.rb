@@ -18,6 +18,7 @@
 #
 
 include_recipe "apache"
+include_recipe "podman"
 include_recipe "postgresql"
 
 postgresql_user "www-data" do
@@ -29,23 +30,49 @@ postgresql_database "mailman" do
   owner "www-data"
 end
 
-directory "/etc/mailman3" do
+directory "/srv/lists/openstreetmap.org" do
   owner "root"
   group "root"
   mode "0755"
 end
 
-template "/etc/mailman3/mailman-web.py" do
-  source "mailman-web.py.erb"
+directory "/srv/lists/openstreetmap.org/core" do
   owner "root"
-  group "www-data"
-  mode "0640"
+  group "root"
+  mode "0755"
 end
 
-package "mailman3-web"
+directory "/srv/lists/openstreetmap.org/web" do
+  owner "root"
+  group "root"
+  mode "0755"
+end
 
-service "mailman3-web" do
-  action [:enable, :start]
+hyperkitty_api_key = persistent_token("mailman", "hyperkitty_api_key")
+
+podman_service "mailman-core" do
+  description ""
+  image "maxking/mailman-core:0.4"
+  ports 8001 => 8001,
+        8024 => 8024
+  volumes "/run/postgresql" => "/run/postgresql",
+          "/srv/lists.openstreetmap.org/core" => "/opt/mailman"
+  environment "HYPERKITTY_API_KEY" => hyperkitty_api_key,
+              "DATABASE_URL" => "postgresql:///mailman?host=/run/postgesql",
+              "DATABASE_TYPE" => "postgres",
+              "DATABASE_CLASS" => "mailman.database.postgresql.PostgreSQLDatabase"
+end
+
+podman_service "mailman-web" do
+  description ""
+  image "maxking/mailman-web:0.4"
+  ports 8000 => 8000,
+        8080 => 8080
+  volumes "/run/postgresql" => "/run/postgresql",
+          "/srv/lists.openstreetmap.org/web" => "/opt/mailman-web-data"
+  environment "DATABASE_URL" => "postgresql:///mailman?host=/run/postgesql",
+              "DATABASE_TYPE" => "postgres",
+              "HYPERKITTY_API_KEY" => hyperkitty_api_key
 end
 
 apache_module "proxy_uwsgi" do
