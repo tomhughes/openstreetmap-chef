@@ -81,6 +81,7 @@ jobs:
           - overpass
           - passenger
           - passenger-apache
+          - passenger-nginx
           - php
           - php-apache
           - php-fpm
