@@ -1,0 +1,11 @@
+# DO NOT EDIT - This file is being maintained by Chef
+
+<IfModule mod_passenger.c>
+  PassengerRoot /usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini
+  PassengerDefaultRuby /usr/bin/ruby
+  PassengerRuby /usr/local/bin/passenger-ruby
+  PassengerMaxPoolSize <%= node[:passenger][:max_pool_size] %>
+  PassengerPoolIdleTime <%= node[:passenger][:pool_idle_time] %>
+  PassengerFriendlyErrorPages off
+  PassengerInstanceRegistryDir <%= node[:passenger][:instance_registry_dir] %>
+</IfModule>

@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 
-include_recipe "apache"
 include_recipe "apt::passenger"
 include_recipe "prometheus"
 include_recipe "ruby"
@@ -27,7 +26,6 @@ template "/usr/local/bin/passenger-ruby" do
   owner "root"
   group "root"
   mode "755"
-  notifies :reload, "service[apache2]"
 end
 
 systemd_tmpfile node[:passenger][:instance_registry_dir] do
@@ -35,10 +33,6 @@ systemd_tmpfile node[:passenger][:instance_registry_dir] do
   owner "root"
   group "root"
   mode "0755"
-end
-
-apache_module "passenger" do
-  conf "passenger.conf.erb"
 end
 
 prometheus_exporter "passenger" do

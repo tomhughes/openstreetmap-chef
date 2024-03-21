@@ -286,6 +286,9 @@ suites:
   - name: passenger
     run_list:
       - recipe[passenger::default]
+  - name: passenger-apache
+    run_list:
+      - recipe[passenger::apache]
   - name: php
     run_list:
       - recipe[php::default]

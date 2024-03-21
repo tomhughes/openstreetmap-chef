@@ -80,6 +80,7 @@ jobs:
           - otrs
           - overpass
           - passenger
+          - passenger-apache
           - php
           - php-apache
           - php-fpm
